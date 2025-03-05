@@ -1,8 +1,16 @@
+
+/**
+ * Tipos válido de Pokemon
+ */
 const VALID_TYPES: string[] = [
   "Acero", "Agua", "Bicho", "Dragón", "Eléctrico", "Fantasma", "Fuego", "Hada", "Hielo", 
   "Lucha", "Normal", "Planta", "Psíquico", "Roca", "Siniestro", "Tierra", "Veneno", "Volador"
 ]
 
+/**
+ * Map de los ataques efectivos o poco efectivos entre los diferentes tipos de Pokémon.
+ * La clave principal es el tipo y el valor es otro map que indica la efectividad del ataque contra un tipo defensor.
+ */
 const TYPE_EFFECTIVENESS = new Map<string, Map<string, number>>([
   ["Acero", new Map([["Hielo", 2], ["Roca", 2], ["Hada", 2], ["Acero", 0.5], ["Fuego", 0.5], ["Eléctrico", 0.5], ["Agua", 0.5]])],
   ["Agua", new Map([["Fuego", 2], ["Tierra", 2], ["Roca", 2], ["Agua", 0.5], ["Planta", 0.5], ["Dragón", 0.5]])],
@@ -25,13 +33,25 @@ const TYPE_EFFECTIVENESS = new Map<string, Map<string, number>>([
   ["Volador", new Map([["Planta", 2], ["Bicho", 2], ["Lucha", 2], ["Eléctrico", 0.5], ["Roca", 0.5], ["Acero", 0.5]])]
 ]);
 
-export class Pokemon {
-  public name: string;
-  private _weight_and_height: [number, number];
-  public pokemon_type: [string, string?];
-  private _total_stats: number;
-  private _stats: number[];
 
+/**
+ * Representa un Pokémon en la Pokédex.
+ */
+export class Pokemon {
+  public name: string;                             // Atributo de nombre
+  private _weight_and_height: [number, number];    // Atributo de peso y altura
+  public pokemon_type: [string, string?];          // Atributo de tipo
+  private _total_stats: number;                    // Atributo de estadisticas totales
+  private _stats: number[];                        // Atributo de estadisticas
+
+  /**
+   * Crea una nueva instancia de Pokémon.
+   * @param name - Nombre del Pokémon.
+   * @param weight_and_height - Tupla con `[peso, altura]`.
+   * @param pokemon_type - Tupla con los tipos de Pokémon `[tipo1, tipo2?]`.
+   * @param stats - Array de estadísticas `[HP, Ataque, Defensa]`.
+   * @throws - Error si las estadísticas no cumplen con los requisitos.
+   */
   constructor(name: string, weight_and_height: [number, number], pokemon_type: [string, string?], stats: number[]) {
     if (stats.length !== 3) throw new Error("El Pokemon debe contener exactamente 3 estadísticas.");
     if (!stats.every(stat => Number.isInteger(stat) && stat > 0)) throw new Error("Todas las estadísticas deben ser números enteros y positivos.");
@@ -47,36 +67,74 @@ export class Pokemon {
     this._total_stats = stats.reduce((sum, stat) => sum + stat, 0);
   }
 
+  // Getters de los atributos privados.
   get weightAndHeight(): [number, number] { return this._weight_and_height; }
   get Stats(): number[] { return [...this._stats]; }
   set health(value: number) { this._stats[0] = value; }
   get totalStats(): number { return this._total_stats; }
 }
 
+/**
+ * Representa una Pokédex donde se almacenan y buscan Pokémon.
+ */
 export class Pokedex {
-  private pokemons: Pokemon[];
+  private pokemons: Pokemon[]; // Atributo lista de Pokemons.
 
+  // Constructor que inicializa la Pokedex vacía.
   constructor() { this.pokemons = []; }
 
+  /**
+   * Agrega un nuevo Pokémon a la Pokédex.
+   * @param pokemon - Pokémon a agregar.
+   */
   addPokemon(pokemon: Pokemon): void { this.pokemons.push(pokemon); }
+
+  /**
+   * Busca Pokémon por tipo.
+   * @param types - Array con los tipos a buscar.
+   * @returns - Lista de Pokémon que coinciden con los tipos.
+   */
   searchByType(types: string[]): Pokemon[] { return this.pokemons.filter(pokemon => types.every(type => pokemon.pokemon_type.includes(type))); }
+  
+  /**
+   * Busca Pokémon por nombre.
+   * @param name - Nombre o fragmento del nombre a buscar.
+   * @returns Lista de Pokémon que coinciden con el nombre.
+   */
   searchByName(name: string) : Pokemon[] { return this.pokemons.filter(pokemon => pokemon.name.toLowerCase().includes(name.toLowerCase())); }
 
+  /**
+   * Busca Pokémon con un valor específico de estadísticas totales.
+   * @param num - Valor de estadísticas totales a buscar.
+   * @returns Lista de Pokémon que coinciden con el total de estadísticas.
+   */
   searchByTotalStats(num: number): Pokemon[] | undefined {
     if (!Number.isInteger(num) || num < 0) return undefined;
     return this.pokemons.filter(pokemon => pokemon.totalStats === num);
   }
 }
 
+/**
+ * Representa un combate entre dos Pokémon.
+ */
 export class Combat {
-  public opponent: Pokemon;
-  public other_opponent: Pokemon;
+  public opponent: Pokemon;        // Primer Pokemon del combate
+  public other_opponent: Pokemon;  // Segundo Pokemon del combate
 
+  /**
+   * Crea un nuevo combate entre dos Pokémon.
+   * @param pokemon1 - Primer Pokémon (atacará primero).
+   * @param pokemon2 - Segundo Pokémon.
+   */
   constructor(pokemon1: Pokemon, pokemon2: Pokemon) {
     this.opponent = pokemon1;
     this.other_opponent = pokemon2;
   }
 
+  /**
+   * Inicia el combate entre los dos Pokémon.
+   * Simula turnos de ataque hasta que uno de los dos queda fuera de combate.
+   */
   start(): void {
     console.log(`Los Pokémon ${this.opponent.name} y ${this.other_opponent.name} entran en combate`);
     console.log(`${this.opponent.name} atacará primero`);
@@ -110,12 +168,18 @@ export class Combat {
     else console.log(`El Pokemon ${this.other_opponent.name} está fuera de combate.`);
   }
 
+  /**
+   * Calcula la efectividad de un ataque según los tipos de los Pokémon.
+   * @param attacker - Tipos del atacante.
+   * @param defender - Tipos del defensor.
+   * @returns - Valor de efectividad (0.5, 1 o 2).
+   */
   private calculateEffectiveness(attacker: [string, string?], defender: [string, string?]): number {
     let effectiveness: number = 1;
 
     attacker.forEach((type) => {
-      if (type && TYPE_EFFECTIVENESS.has(type)) effectiveness *= TYPE_EFFECTIVENESS.get(type).get(defender[0]) ?? 1;
-      if (defender[1]) effectiveness *= TYPE_EFFECTIVENESS.get(type).get(defender[1]) ?? 1;
+      if (type && TYPE_EFFECTIVENESS.has(type)) effectiveness *= TYPE_EFFECTIVENESS.get(type)!.get(defender[0]) ?? 1;
+      if (defender[1]) effectiveness *= TYPE_EFFECTIVENESS.get(type!)!.get(defender[1]) ?? 1;
     });
 
     return Math.round(effectiveness);
