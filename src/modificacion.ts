@@ -91,8 +91,61 @@ export class Moto extends CommonStats {
 }
 
 class Parking {
-  constructor(public max_parking: number, public open_hour: number, public close_hour: number) {
+  cars: Car[] = [];
+  motos: Moto[] = [];
+
+  /**
+   * @param max_parking - Plazas maximas del parking
+   * @param moto_park - Plazas de moto
+   * @param car_park -Plazas de coche
+    * @param open_hour - Hora de apertura
+   * @param close_hour - Hora de cierre
+   */
+  constructor(public max_parking: number, public moto_park: number, public car_park: number,  public open_hour: number, public close_hour: number) {
     if (open_hour < 0 || open_hour > 24) throw new Error("Error");
+    if (close_hour < 0 || close_hour > 24) throw new Error("Error");
+    if (close_hour <= open_hour) throw new Error("Error");
+    if (car_park + moto_park !== max_parking) throw new Error("Error");
+  }
+  /**
+   * Añade un coche al parking
+   * @param car - Coche
+   */
+  addCar(car: Car): void {
+    this.cars.push(car);
   }
 
+  /**
+   * Añade una moto al parking
+   * @param moto - Moto
+   */
+  addMoto(moto: Moto): void {
+    this.motos.push(moto);
+  }
+
+  /**
+   * 
+   * @param plate - Matricula a buscar
+   * @returns true o false dependiendo si la encontró
+   */
+  searchCarByPlate(plate: string): boolean {
+    let found: boolean = false;
+    this.cars.forEach((car) => {
+      if(car.plate.includes(plate)) found = true;
+    });
+    return found;
+  }
+
+  /**
+   * 
+   * @param plate - Matricula a buscar
+   * @returns true o false dependiendo si la encontró
+   */
+  searchMotoByPlate(plate: string): boolean {
+    let found: boolean = false;
+    this.motos.forEach((moto) => {
+      if(moto.plate.includes(plate)) found = true;
+    });
+    return found;
+  }
 }
