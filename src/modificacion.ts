@@ -89,3 +89,10 @@ export class Moto extends CommonStats {
     return data;
   }
 }
+
+class Parking {
+  constructor(public max_parking: number, public open_hour: number, public close_hour: number) {
+    if (open_hour < 0 || open_hour > 24) throw new Error("Error");
+  }
+
+}
